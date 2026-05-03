@@ -763,6 +763,11 @@
     "instruction-parameter": {
       "base": {
         "color": {
+          "value": "#000000"
+        }
+      },
+      "string": {
+        "color": {
           "value": "#00724E"
         }
       },

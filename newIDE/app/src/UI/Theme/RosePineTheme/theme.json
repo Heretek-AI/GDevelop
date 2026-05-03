@@ -700,6 +700,11 @@
     "instruction-parameter": {
       "base": {
         "color": {
+          "value": "#ffffff"
+        }
+      },
+      "string": {
+        "color": {
           "value": "#9ccfd8"
         }
       },
