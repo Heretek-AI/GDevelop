@@ -34,28 +34,22 @@ class ObjectConfiguration;
 namespace gd {
 
 /**
- * \brief Describe colorations to be shown to the user.
+ * \brief Describe colorations to be shown to users.
  */
 struct GD_CORE_API ExpressionColorationDescription {
 public:
-  /**
-   * The different kind of colorations that can be described.
-   * The IDE is responsible for actually *searching* and showing the colorations
-   * of colorations with a kind "WithPrefix": these colorations are only
-   * describing what must be listed.
-   */
   enum ColorationKind { String, Number, Object, Variable, Operator };
 
   /** \brief Return the kind of the coloration */
   ColorationKind GetColorationKind() const { return colorationKind; }
 
   /**
-   * \brief Return the first character index of the autocompleted part.
+   * \brief Return the first character index of the colorized part.
    */
   size_t GetStartPosition() const { return startPosition; }
 
   /**
-   * \brief Return the first character index after the autocompleted part.
+   * \brief Return the first character index after the colorized part.
    */
   size_t GetEndPosition() const { return endPosition; }
 
