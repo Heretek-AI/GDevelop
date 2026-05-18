@@ -1,0 +1,18 @@
+{
+  "id": "21433e79-fb50-40ad-9931-aa861a154d64",
+  "runtime": "bash",
+  "purpose": "Verify target file paths in worktree",
+  "script_chars": 830,
+  "started_at": "2026-05-18T23:43:22.618Z",
+  "finished_at": "2026-05-18T23:43:26.763Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 4145,
+  "stdout_bytes": 485,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\21433e79-fb50-40ad-9931-aa861a154d64.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\21433e79-fb50-40ad-9931-aa861a154d64.stderr"
+}

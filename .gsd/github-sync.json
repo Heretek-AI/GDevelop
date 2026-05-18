@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "repo": "Heretek-AI/GDevelop",
+  "milestones": {},
+  "slices": {
+    "M001/S01": {
+      "issueNumber": 0,
+      "prNumber": 0,
+      "branch": "milestone/M001/S01",
+      "lastSyncedAt": "2026-05-18T23:45:25.069Z",
+      "state": "open"
+    }
+  },
+  "tasks": {}
+}

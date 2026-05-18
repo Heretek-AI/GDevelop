@@ -1,0 +1,13 @@
+=== Checking Usage.js ===
+ls: cannot access '/newIDE/app/src/Utils/GDevelopServices/Usage.js': No such file or directory
+
+=== Checking Watermark.cpp ===
+ls: cannot access '/Core/GDCore/Project/Watermark.cpp': No such file or directory
+
+=== Checking runtimewatermark.ts ===
+ls: cannot access '/newIDE/app/src/GameEngine/EngineCommands/runtimewatermark.ts': No such file or directory
+
+=== Checking for test framework ===
+No test file found for Usage.js
+
+=== Checking for jest config ===
