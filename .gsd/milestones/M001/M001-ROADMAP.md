@@ -1,0 +1,35 @@
+# M001: BYOK Fork
+
+**Vision:** GDevelop IDE fully unlocked with BYOK AI routing through user-owned LLM keys, built directly into the source.
+
+## Success Criteria
+
+- GDevelop launches without errors with all BYOK changes applied
+- No subscription gate or upsell visible
+- No Made with GDevelop watermark on preview
+- BYOK preset visible in AI configuration dropdown
+- Config panel renders with provider/endpoint/key/model fields when BYOK selected
+- Saving config persists across app restart
+- Chat request with BYOK preset calls configured LLM and returns response
+- Chat request with non-BYOK preset still works normally
+
+## Slices
+
+- [ ] **S01: Core Premium Unlock** `risk:low` `depends:[]`
+  > After this: IDE launches with subscription valid, max limits, no watermark
+
+- [ ] **S02: IPC Infrastructure** `risk:medium` `depends:[]`
+  > After this: window.byokAi available in renderer, IPC handlers registered in main process
+
+- [ ] **S03: AI Routing** `risk:medium` `depends:[S02]`
+  > After this: BYOK preset appears in dropdown, selecting it routes AI requests through local IPC
+
+- [ ] **S04: Config UI** `risk:low` `depends:[S02,S03]`
+  > After this: Config panel renders with provider/endpoint/key/model fields, settings persist across restart
+
+- [ ] **S05: Integration & Regression** `risk:low` `depends:[S01,S02,S03,S04]`
+  > After this: Full end-to-end: premium unlock active, BYOK chat works, non-BYOK presets still functional
+
+## Boundary Map
+
+Not provided.
