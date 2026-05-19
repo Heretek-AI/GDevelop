@@ -24,6 +24,12 @@ import {
   type AiRequestMessage,
 } from '../Utils/GDevelopServices/Generation';
 import {
+  byokCreateAiRequest,
+  byokAddMessageToAiRequest,
+  isByokPreset,
+  isByokAiAvailable,
+} from '../Utils/GDevelopServices/ByokRouting';
+import {
   getCloudProjectFileMetadataIdentifier,
   type ExpandedCloudProjectVersion,
 } from '../Utils/GDevelopServices/Project';
@@ -478,6 +484,36 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             } = newAiRequestOptions;
             startNewAiRequest(null);
 
+            // BYOK routing: when the BYOK preset is selected and the IPC bridge
+            // is available (Electron renderer), create the AI request locally
+            // instead of calling the GDevelop REST API.
+            if (isByokPreset(aiConfigurationPresetId) && isByokAiAvailable()) {
+              console.info('Starting BYOK AI request...');
+              setSendingAiRequest(null, true);
+              setIsSendingUserMessage(true);
+
+              const result = await byokCreateAiRequest({
+                userRequest,
+                mode,
+              });
+
+              console.info('BYOK AI request created:', result);
+              setSendingAiRequest(null, false);
+              setIsSendingUserMessage(false);
+              updateAiRequest(result.id, () => result);
+              setSelectedAiRequestId(result.id);
+
+              const aiRequestChatRefCurrent = aiRequestChatRef.current;
+              if (aiRequestChatRefCurrent) {
+                aiRequestChatRefCurrent.resetUserInput('');
+                aiRequestChatRefCurrent.resetUserInput(result.id);
+              }
+
+              // BYOK requests don't consume GDevelop credits or quota,
+              // so we skip refreshLimits and the credits flow entirely.
+              return;
+            }
+
             // Ensure the user has enough credits to pay for the request, or ask them
             // to buy some more.
             let payWithCredits = false;
@@ -669,6 +705,41 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
 
           // If nothing to send, stop there.
           if (functionCallOutputs.length === 0 && !userMessage) return;
+
+          // BYOK routing: when the selected AI request was created via BYOK,
+          // route subsequent messages through the local IPC bridge.
+          const selectedAiRequestPresetId =
+            selectedAiRequest.aiConfiguration &&
+            selectedAiRequest.aiConfiguration.presetId;
+          if (
+            isByokPreset(selectedAiRequestPresetId || '') &&
+            isByokAiAvailable() &&
+            userMessage
+          ) {
+            console.info('Sending BYOK AI request message...');
+            setSendingAiRequest(selectedAiRequestId, true);
+            setIsSendingUserMessage(true);
+
+            const result = await byokAddMessageToAiRequest(
+              selectedAiRequest,
+              userMessage
+            );
+
+            console.info('BYOK AI request message sent:', result);
+            updateAiRequest(result.id, () => result);
+            setSendingAiRequest(result.id, false);
+            setIsSendingUserMessage(false);
+
+            const aiRequestChatRefCurrent = aiRequestChatRef.current;
+            if (aiRequestChatRefCurrent) {
+              aiRequestChatRefCurrent.resetUserInput('');
+              aiRequestChatRefCurrent.resetUserInput(selectedAiRequestId);
+            }
+
+            // BYOK messages don't consume GDevelop credits or quota,
+            // so we skip refreshLimits and the credits flow entirely.
+            return;
+          }
 
           // Paying with credits is only when a user message is sent (and quota is exhausted).
           let payWithCredits = false;
