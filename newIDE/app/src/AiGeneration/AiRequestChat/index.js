@@ -48,6 +48,7 @@ import { AiRequestContext } from '../AiRequestContext';
 import PreferencesContext from '../../MainFrame/Preferences/PreferencesContext';
 import { useStickyVisibility } from './UseStickyVisibility';
 import CircledInfo from '../../UI/CustomSvgIcons/CircledInfo';
+import ByokConfigPanel from './ByokConfigPanel';
 import Coin from '../../Credits/Icons/Coin';
 import FlatButton from '../../UI/FlatButton';
 import GoldCompact from '../../Profile/Subscription/Icons/GoldCompact';
@@ -839,6 +840,9 @@ export const AiRequestChat: React.ComponentType<{
                             onClick={onClickNewChatButton}
                           />
                         </LineStackLayout>
+                        {chosenOrDefaultAiConfigurationPresetId === 'byok' && (
+                          <ByokConfigPanel />
+                        )}
                       </Column>
                     }
                   />

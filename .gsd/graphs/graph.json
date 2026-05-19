@@ -24,19 +24,19 @@
     },
     {
       "id": "task:M001:S01:T01",
-      "label": "T01: Disable watermark in Watermark.cpp defaults",
+      "label": "T01: Bypass hasValidSubscriptionPlan to always return true",
       "type": "task",
       "confidence": "EXTRACTED"
     },
     {
       "id": "task:M001:S01:T02",
-      "label": "T02: Bypass hasValidSubscriptionPlan to always return true",
+      "label": "T02: Bypass getUserLimits to return max capabilities without API call",
       "type": "task",
       "confidence": "EXTRACTED"
     },
     {
       "id": "task:M001:S01:T03",
-      "label": "T03: Bypass getUserLimits with hardcoded max-limits object",
+      "label": "T03: Disable watermark default in Watermark.cpp",
       "type": "task",
       "confidence": "EXTRACTED"
     },
@@ -74,6 +74,31 @@
     {
       "id": "task:M001:S02:T05",
       "label": "T05: Verify IPC round-trip works end-to-end",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M001:S03",
+      "label": "S03: AI Routing — wire BYOK into fetchAiSettings",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S03/S03-PLAN.md"
+    },
+    {
+      "id": "task:M001:S03:T01",
+      "label": "T01: Inject BYOK preset into fetchAiSettings()",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S03:T02",
+      "label": "T02: Create ByokRouting renderer module for AI request interception",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S03:T03",
+      "label": "T03: Wire BYOK routing into AskAiEditorContainer",
       "type": "task",
       "confidence": "EXTRACTED"
     }
@@ -138,7 +163,31 @@
       "to": "task:M001:S02:T05",
       "type": "contains",
       "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S03",
+      "to": "task:M001:S03:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
     }
   ],
-  "builtAt": "2026-05-19T12:00:05.446Z"
+  "builtAt": "2026-05-19T15:09:35.874Z"
 }

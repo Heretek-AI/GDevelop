@@ -21,10 +21,10 @@
 - [x] **S02: S02** `risk:medium` `depends:[]`
   > After this: window.byokAi available in renderer, IPC handlers registered in main process
 
-- [ ] **S03: S03** `risk:medium` `depends:[]`
+- [x] **S03: S03** `risk:medium` `depends:[]`
   > After this: BYOK preset appears in dropdown, selecting it routes AI requests through local IPC
 
-- [ ] **S04: Config UI** `risk:low` `depends:[S02,S03]`
+- [ ] **S04: S04** `risk:low` `depends:[]`
   > After this: Config panel renders with provider/endpoint/key/model fields, settings persist across restart
 
 - [ ] **S05: Integration & Regression** `risk:low` `depends:[S01,S02,S03,S04]`
