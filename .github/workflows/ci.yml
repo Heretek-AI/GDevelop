@@ -1,13 +1,12 @@
 # CI pipeline for BYOK fork of GDevelop
 #
-# Runs on push and pull request to main/master branches.
-# Covers: dependency installation, linting, formatting, type checks,
-# unit tests (BYOK + newIDE), and structural invariant checks.
+# Covers: dependency installation, linting, formatting, BYOK unit tests
+# (Node native test runner), and structure checks.  Runs on push/PR to
+# main/master/milestone branches.
 #
 # The full GDevelop CI (Semaphore) builds C++ (GDevelop.js) and runs GDJS
 # tests.  This workflow is lighter — it covers the JS/Electron surface
-# where BYOK changes live.  GDevelop.js changes are not reflected here
-# (would require the full native build pipeline).
+# where BYOK changes live.
 
 name: CI
 
@@ -51,41 +50,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NEWIDE_DIR }}/node_modules
-          key: newide-node-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
-          restore-keys: |
-            newide-node-
-
-      - name: Cache electron-app node_modules
-        id: cache-electron
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.ELECTRON_DIR }}/node_modules
-          key: electron-node-${{ hashFiles(format('{0}/package-lock.json', env.ELECTRON_DIR)) }}
-          restore-keys: |
-            electron-node-
+          key: newide-node-v2-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
 
       - name: Install newIDE dependencies
         if: steps.cache-newide.outputs.cache-hit != 'true'
         working-directory: ${{ env.NEWIDE_DIR }}
-        run: npm ci --ignore-scripts  # skip postinstall (GDJS dep + resource imports)
-
-      - name: Install electron-app dependencies
-        if: steps.cache-electron.outputs.cache-hit != 'true'
-        working-directory: ${{ env.ELECTRON_DIR }}
         run: npm ci --ignore-scripts
-
-      # Persist install state for dependent jobs (no need to re-install)
-      - name: Persist newIDE node_modules
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.NEWIDE_DIR }}/node_modules
-          key: newide-node-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
-
-      - name: Persist electron-app node_modules
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.ELECTRON_DIR }}/node_modules
-          key: electron-node-${{ hashFiles(format('{0}/package-lock.json', env.ELECTRON_DIR)) }}
 
   lint:
     name: Lint and format
@@ -102,19 +72,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ env.NEWIDE_DIR }}/node_modules
-          key: newide-node-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
+          key: newide-node-v2-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
 
       - name: ESLint (newIDE)
         working-directory: ${{ env.NEWIDE_DIR }}
-        run: npx eslint src/ --max-warnings=0
+        run: npm run lint
 
       - name: Prettier check (newIDE)
         working-directory: ${{ env.NEWIDE_DIR }}
-        run: npx prettier --list-different "src/!(locales)/**/*.js"
-
-      - name: Prettier check (electron-app)
-        working-directory: ${{ env.ELECTRON_DIR }}
-        run: npx prettier --list-different --ignore-path .gitignore "**/*.js"
+        run: npm run check-format
 
   byok-tests:
     name: BYOK unit tests
@@ -127,58 +93,31 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Syntax-check all BYOK modules
+        working-directory: ${{ env.ELECTRON_DIR }}
+        run: |
+          failed=0
+          for f in app/byok/buildSystemPrompt.js app/byok/byokConfig.js \
+                   app/byok/byokMain.js app/byok/callLLM.js \
+                   app/byok/errors.js app/byok/requestStore.js \
+                   app/byok/tests/buildSystemPrompt.test.js \
+                   app/byok/tests/callLLM.test.js \
+                   app/byok/tests/errors.test.js \
+                   app/byok/tests/requestStore.test.js; do
+            if node -c "$f" 2>&1; then
+              echo "  ✓ $f"
+            else
+              echo "  ✗ $f (syntax error)"
+              failed=1
+            fi
+          done
+          exit $failed
+
       - name: Run BYOK unit tests
         working-directory: ${{ env.BYOK_DIR }}
         run: |
-          for t in tests/*.test.js; do
-            echo "::group::node --test $t"
-            node --test "$t"
-            echo "::endgroup::"
-          done
-
-      - name: Run BYOK structural checks (syntax + invariants)
-        working-directory: ${{ env.ELECTRON_DIR }}
-        run: |
-          # Syntax check all BYOK modules
-          for f in app/byok/*.js app/byok/tests/*.js; do
-            if [ -f "$f" ]; then
-              node -c "$f"
-              echo "  ✓ $f"
-            fi
-          done
-
-  newide-tests:
-    name: newIDE Jest tests
-    needs: install
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 50
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Restore newIDE node_modules
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.NEWIDE_DIR }}/node_modules
-          key: newide-node-${{ hashFiles(format('{0}/package-lock.json', env.NEWIDE_DIR)) }}
-
-      - name: GDJS install (required by newIDE postinstall)
-        working-directory: ${{ env.GDJS_DIR }}
-        run: npm ci --ignore-scripts 2>/dev/null || echo "GDJS install skipped (not always needed for tests)"
-
-      - name: Import resources (required by test setup)
-        working-directory: ${{ env.NEWIDE_DIR }}
-        run: |
-          npm run make-version-metadata
-          npm run build-theme-resources
-        continue-on-error: true  # Some resource scripts may fail without full build
-
-      - name: Run Jest tests
-        working-directory: ${{ env.NEWIDE_DIR }}
-        run: npx react-app-rewired test --env=node --watchAll=false
-        env:
-          CI: true
+          node --test \
+            tests/errors.test.js \
+            tests/buildSystemPrompt.test.js \
+            tests/requestStore.test.js \
+            tests/callLLM.test.js

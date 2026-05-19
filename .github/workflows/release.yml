@@ -1,0 +1,102 @@
+# Release workflow for BYOK fork of GDevelop
+#
+# Triggered by pushing a tag (e.g. v1.0.0).  Runs CI validation, then
+# creates a GitHub Release with auto-generated release notes.
+#
+# Full packaging (electron-builder) requires GDevelop.js built from C++
+# via Emscripten — not practical in GitHub Actions.  Package locally with:
+#   cd newIDE/electron-app && npm run build
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v1.0.0)"
+        required: false
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Cache newIDE node_modules
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: newIDE/app/node_modules
+          key: newide-release-v1-${{ hashFiles('newIDE/app/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: newIDE/app
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        working-directory: newIDE/app
+        run: npm run lint
+
+      - name: BYOK syntax check
+        run: |
+          for f in newIDE/electron-app/app/byok/*.js \
+                   newIDE/electron-app/app/byok/tests/*.test.js; do
+            node -c "$f" && echo "  ✓ $f" || exit 1
+          done
+
+      - name: BYOK unit tests
+        working-directory: newIDE/electron-app/app/byok
+        run: |
+          node --test \
+            tests/errors.test.js \
+            tests/buildSystemPrompt.test.js \
+            tests/requestStore.test.js \
+            tests/callLLM.test.js
+
+  release:
+    name: Create release
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "Tag: $TAG"
+          PREV_TAG=$(git tag --sort=-creatordate | sed -n 2p)
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="$PREV_TAG..HEAD"
+          else
+            RANGE="HEAD"
+          fi
+          echo "$RANGE"
+          CHANGELOG=$(git log --oneline --no-merges "$RANGE" 2>/dev/null || git log --oneline --no-merges HEAD~10..HEAD)
+          {
+            echo "## Changes"
+            echo
+            echo '```'
+            echo "$CHANGELOG"
+            echo '```'
+          } > /tmp/release-notes.md
+          echo "notes_path=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: ${{ steps.notes.outputs.notes_path }}
+          draft: true
+          generate_release_notes: false
