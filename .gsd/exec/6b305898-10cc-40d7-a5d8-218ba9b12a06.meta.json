@@ -1,0 +1,18 @@
+{
+  "id": "6b305898-10cc-40d7-a5d8-218ba9b12a06",
+  "runtime": "bash",
+  "purpose": "T01 verification: syntax check + unit tests",
+  "script_chars": 288,
+  "started_at": "2026-05-19T01:36:35.634Z",
+  "finished_at": "2026-05-19T01:36:39.319Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 3685,
+  "stdout_bytes": 0,
+  "stderr_bytes": 94,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\6b305898-10cc-40d7-a5d8-218ba9b12a06.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\6b305898-10cc-40d7-a5d8-218ba9b12a06.stderr"
+}
