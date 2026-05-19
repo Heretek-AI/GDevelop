@@ -27,7 +27,7 @@
 - [x] **S04: S04** `risk:low` `depends:[]`
   > After this: Config panel renders with provider/endpoint/key/model fields, settings persist across restart
 
-- [ ] **S05: S05** `risk:low` `depends:[]`
+- [x] **S05: S05** `risk:low` `depends:[]`
   > After this: Full end-to-end: premium unlock active, BYOK chat works, non-BYOK presets still functional
 
 ## Boundary Map
