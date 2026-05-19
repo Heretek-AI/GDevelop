@@ -3,14 +3,25 @@
 /**
  * BYOK preload script — bridges renderer ↔ main process for AI features.
  *
- * Exposes window.byokAi via contextBridge with methods that map to IPC handlers
- * in byokMain.js.  The renderer never gets direct access to ipcRenderer or Node
- * APIs — all communication goes through these typed channels.
+ * Exposes window.byokAi via direct assignment to the renderer's window object.
+ * The renderer never gets direct access to ipcRenderer except through these
+ * typed channels.
+ *
+ * Note: This uses direct assignment instead of contextBridge.exposeInMainWorld
+ * because the Electron app runs with contextIsolation: false (the renderer
+ * and preload share the same global scope). If contextIsolation is ever
+ * enabled, this should switch to contextBridge.exposeInMainWorld.
  */
 
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('byokAi', {
+// Use contextBridge when available (contextIsolation: true), or fall back
+// to direct window assignment (contextIsolation: false).
+const expose = typeof contextBridge !== 'undefined' && contextBridge.exposeInMainWorld
+  ? (name, api) => contextBridge.exposeInMainWorld(name, api)
+  : (name, api) => { window[name] = api; };
+
+expose('byokAi', {
   /**
    * Read the current BYOK configuration (API key is masked for safety).
    * @returns {Promise<object>}
