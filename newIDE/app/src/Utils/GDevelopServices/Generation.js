@@ -975,9 +975,27 @@ export const fetchAiSettings = async ({
   const response = await axios.get(
     `${GDevelopAiCdn.baseUrl[environment]}/ai-settings.json`
   );
-  return ensureObjectHasProperty({
+  const aiSettings = ensureObjectHasProperty({
     data: response.data,
     propertyName: 'aiRequest',
     endpointName: '/ai-settings.json of Generation API',
   });
+
+  // D003: Inject BYOK (Bring Your Own Key) presets so users can route AI requests
+  // through their own API keys instead of the GDevelop Generation API.
+  // These presets share the same id ('byok') across all modes; the mode field
+  // distinguishes them so AiConfiguration.js and other downstream consumers
+  // can match the appropriate preset per mode.
+  const byokPreset = {
+    id: 'byok',
+    nameByLocale: { en: 'BYOK (Bring Your Own Key)' },
+    disabled: false,
+  };
+  aiSettings.aiRequest.presets.push(
+    { ...byokPreset, mode: 'chat' },
+    { ...byokPreset, mode: 'agent' },
+    { ...byokPreset, mode: 'orchestrator' }
+  );
+
+  return aiSettings;
 };

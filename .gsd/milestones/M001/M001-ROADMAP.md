@@ -15,13 +15,13 @@
 
 ## Slices
 
-- [ ] **S01: Core Premium Unlock** `risk:low` `depends:[]`
+- [x] **S01: S01** `risk:low` `depends:[]`
   > After this: IDE launches with subscription valid, max limits, no watermark
 
-- [ ] **S02: IPC Infrastructure** `risk:medium` `depends:[]`
+- [x] **S02: S02** `risk:medium` `depends:[]`
   > After this: window.byokAi available in renderer, IPC handlers registered in main process
 
-- [ ] **S03: AI Routing** `risk:medium` `depends:[S02]`
+- [ ] **S03: S03** `risk:medium` `depends:[]`
   > After this: BYOK preset appears in dropdown, selecting it routes AI requests through local IPC
 
 - [ ] **S04: Config UI** `risk:low` `depends:[S02,S03]`

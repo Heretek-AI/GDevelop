@@ -1,11 +1,11 @@
 # S01: Core Premium Unlock
 
-**Goal:** IDE launches with subscription valid, max limits, no watermark
+**Goal:** The IDE launches with subscription valid, max limits, no watermark — all gating functions bypassed at source.
 **Demo:** IDE launches with subscription valid, max limits, no watermark
 
 ## Must-Haves
 
-- R001: hasValidSubscriptionPlan() always returns true. R002: getUserLimits() returns hardcoded max-limits without API call. R003: Watermark constructor and deserialization default to showWatermark: false.
+- [ ] GDevelop launches without errors\n- [ ] No subscription gate or upsell visible\n- [ ] No Made with GDevelop watermark on preview\n- [ ] `hasValidSubscriptionPlan()` returns `true` regardless of subscription\n- [ ] `getUserLimits()` returns premium capabilities without API call\n- [ ] Watermark.cpp defaults to `showWatermark=false`
 
 ## Proof Level
 
@@ -13,30 +13,30 @@
 
 ## Integration Closure
 
-Three surgical edits at definition sites. All downstream callers pick up changes automatically. T01 touches C++ constructor+serialization defaults. T02+T03 touch the same Usage.js file. No new wiring needed — these are pure bypass edits at the source of truth.
+This slice is self-contained — it modifies the subscription/limits/watermark source functions. Downstream callers pick up the changes transparently.
 
 ## Verification
 
-- None — these are compile-time/default changes. No runtime signals added. Verification is via grep on the edited files and existing test suite pass.
+- none — simple function-level bypasses with no async state or runtime signals
 
 ## Tasks
 
-- [ ] **T01: Disable watermark in Watermark.cpp defaults** `est:10m`
-  Why: R003 requires the Made with GDevelop watermark to be disabled by default. The Watermark.cpp constructor initializes showWatermark to true, and UnserializeFrom falls back to true when the attribute is missing.
+- [x] **T01: Bypass hasValidSubscriptionPlan to always return true** `est:15m`
+  Modify `hasValidSubscriptionPlan()` in `Usage.js` to always return `true` regardless of the subscription argument. This is the single choke point used by all premium gating callers (SubscriptionChecker, AskAiEditorContainer, etc.).
+  - Files: `newIDE/app/src/Utils/GDevelopServices/Usage.js`
+  - Verify: grep -q 'return true' newIDE/app/src/Utils/GDevelopServices/Usage.js && node -e "require('fs').readFileSync('newIDE/app/src/Utils/GDevelopServices/Usage.js','utf8').includes('hasValidSubscriptionPlan') && console.log('T01: hasValidSubscriptionPlan modified') || process.exit(1)"
+
+- [x] **T02: Bypass getUserLimits to return max capabilities without API call** `est:30m`
+  Modify `getUserLimits()` in `Usage.js` to skip the API call and return a static max-limits object. The function should ignore its parameters and return: a `Limits` object with `quotas` having maxed-out values (limitReached: false, current: 0, max: 999999), `capabilities` set to premium defaults (all booleans true, max counts at 999999, themeCustomization FULL, etc.), and a `credits` object with typical premium values.
+  - Files: `newIDE/app/src/Utils/GDevelopServices/Usage.js`
+  - Verify: grep -q '999999' newIDE/app/src/Utils/GDevelopServices/Usage.js && node -e "const u=require('fs').readFileSync('newIDE/app/src/Utils/GDevelopServices/Usage.js','utf8'); u.includes('getUserLimits') && !u.includes('apiClient.get') && console.log('T02: getUserLimits bypassed') || process.exit(1)"
+
+- [x] **T03: Disable watermark default in Watermark.cpp** `est:10m`
+  Change the default value of `showWatermark` from `true` to `false` in `Watermark.cpp`'s constructor initialization list. This prevents the GDevelop watermark from appearing on preview exports.
   - Files: `Core/GDCore/Project/Watermark.cpp`
-  - Verify: grep -q "showWatermark(false)" Core/GDCore/Project/Watermark.cpp
-
-- [ ] **T02: Bypass hasValidSubscriptionPlan to always return true** `est:10m`
-  Why: R001 requires hasValidSubscriptionPlan() to return true unconditionally, removing all subscription gating. Called by ~15 consumers across the IDE.
-  - Files: `newIDE/app/src/Utils/GDevelopServices/Usage.js`
-  - Verify: grep -q "return true" newIDE/app/src/Utils/GDevelopServices/Usage.js
-
-- [ ] **T03: Bypass getUserLimits with hardcoded max-limits object** `est:15m`
-  Why: R002 requires getUserLimits() to return maximum values for all limits without making an API call. Removes all caps on builds, projects, AI tokens, etc. Must return a valid Limits Flow type.
-  - Files: `newIDE/app/src/Utils/GDevelopServices/Usage.js`
-  - Verify: grep -q "maximumCount: 999" newIDE/app/src/Utils/GDevelopServices/Usage.js
+  - Verify: grep -q 'showWatermark(false)' Core/GDCore/Project/Watermark.cpp && echo 'T03: watermark disabled'
 
 ## Files Likely Touched
 
-- Core/GDCore/Project/Watermark.cpp
 - newIDE/app/src/Utils/GDevelopServices/Usage.js
+- Core/GDCore/Project/Watermark.cpp

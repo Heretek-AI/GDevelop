@@ -45,6 +45,7 @@ const {
   onLocalGDJSDevelopmentWatcherRuntimeUpdated,
 } = require('./LocalGDJSDevelopmentWatcher');
 const { setupWatcher, disableWatcher } = require('./LocalFilesystemWatcher');
+const { registerByokHandlers } = require('./byok/byokMain');
 
 // Initialize `@electron/remote` module
 require('@electron/remote/main').initialize();
@@ -152,6 +153,7 @@ function createNewWindow(windowArgs = args) {
     },
     trafficLightPosition: { x: 12, y: 12 },
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       webSecurity: false, // Allow to access to local files,
       // Allow Node.js API access in renderer process, as long
       // as we've not removed dependency on it and on "@electron/remote".
@@ -829,4 +831,6 @@ app.on('ready', function() {
       log.error('Failed to run npm script:', err);
     }
   });
+
+  registerByokHandlers(ipcMain);
 });
