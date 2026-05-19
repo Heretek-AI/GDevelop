@@ -8,7 +8,6 @@ import {
   type MessageByLocale,
 } from '../i18n/MessageByLocale';
 import { extractGDevelopApiErrorStatusAndCode } from './Errors';
-import { isNativeMobileApp } from '../Platform';
 import {
   ensureIsArray,
   ensureIsObjectOrNull,
