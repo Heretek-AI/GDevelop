@@ -1,0 +1,5 @@
+PASS: has getUserLimits (true)
+PASS: has 999999 (true)
+PASS: has FULL capability (true)
+PASS: no apiClient.get in getUserLimits (true)
+PASS: hasValidSubscriptionPlan returns true (true)

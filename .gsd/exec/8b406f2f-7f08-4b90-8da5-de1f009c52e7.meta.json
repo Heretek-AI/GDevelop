@@ -1,0 +1,18 @@
+{
+  "id": "8b406f2f-7f08-4b90-8da5-de1f009c52e7",
+  "runtime": "bash",
+  "purpose": "Verify main.js and electron-app structure paths",
+  "script_chars": 685,
+  "started_at": "2026-05-19T01:09:43.707Z",
+  "finished_at": "2026-05-19T01:09:48.106Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 4399,
+  "stdout_bytes": 114,
+  "stderr_bytes": 94,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\8b406f2f-7f08-4b90-8da5-de1f009c52e7.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\8b406f2f-7f08-4b90-8da5-de1f009c52e7.stderr"
+}

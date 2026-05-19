@@ -1,0 +1,18 @@
+{
+  "id": "61b4e6c9-671e-4078-95e6-3c9d44bf6e12",
+  "runtime": "bash",
+  "purpose": "Find ipcMain.handle patterns and BrowserWindow webPreferences in main.js",
+  "script_chars": 190,
+  "started_at": "2026-05-19T01:09:59.123Z",
+  "finished_at": "2026-05-19T01:09:59.252Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 129,
+  "stdout_bytes": 0,
+  "stderr_bytes": 94,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\61b4e6c9-671e-4078-95e6-3c9d44bf6e12.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\61b4e6c9-671e-4078-95e6-3c9d44bf6e12.stderr"
+}

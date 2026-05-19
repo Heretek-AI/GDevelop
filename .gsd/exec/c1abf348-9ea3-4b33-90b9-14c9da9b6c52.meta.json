@@ -1,0 +1,18 @@
+{
+  "id": "c1abf348-9ea3-4b33-90b9-14c9da9b6c52",
+  "runtime": "node",
+  "purpose": "S01-UAT-tc2-extended-check",
+  "script_chars": 1052,
+  "started_at": "2026-05-19T01:03:34.253Z",
+  "finished_at": "2026-05-19T01:03:34.303Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 50,
+  "stdout_bytes": 901,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\c1abf348-9ea3-4b33-90b9-14c9da9b6c52.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\c1abf348-9ea3-4b33-90b9-14c9da9b6c52.stderr"
+}

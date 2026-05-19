@@ -1,0 +1,4 @@
+=== T01: hasValidSubscriptionPlan always returns true ===
+T01 FAIL
+
+=== T02: getUserLimits returns max limits without API call ===

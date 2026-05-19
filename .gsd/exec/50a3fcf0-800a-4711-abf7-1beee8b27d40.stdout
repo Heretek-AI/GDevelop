@@ -1,0 +1,23 @@
+{
+  "smoke": "FAIL",
+  "tc1_functionFound": true,
+  "tc1_returnsTrue": true,
+  "tc1_verdict": "PASS",
+  "tc2_functionFound": true,
+  "tc2_hasMax999999": true,
+  "tc2_noApiGet": true,
+  "tc2_hasAnalytics": true,
+  "tc2_hasCloudProjects": true,
+  "tc2_hasLeaderboards": true,
+  "tc2_hasMultiplayer": false,
+  "tc2_hasVersionHistory": false,
+  "tc2_hasAi": false,
+  "tc2_limitReachedFalse": true,
+  "tc2_verdict": "PASS",
+  "tc3_ctorShowWatermarkFalse": true,
+  "tc3_unserializeDefaultFalse": true,
+  "tc3_unserializeHasTrue": false,
+  "tc3_verdict": "PASS",
+  "edge_legacy_deserialization": "PASS",
+  "edge_note": "GetBoolAttribute uses false as default — explicit true in serialized data will still be respected since GetBoolAttribute reads the attribute value first and only falls back to default when absent"
+}

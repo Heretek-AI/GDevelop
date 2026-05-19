@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T01",
+  "unitId": "M001/S01/T01",
+  "timestamp": 1779152216731,
+  "passed": false,
+  "discoverySource": "task-plan",
+  "checks": [
+    {
+      "command": "grep -q 'return true' newIDE/app/src/Utils/GDevelopServices/Usage.js",
+      "exitCode": 127,
+      "durationMs": 229,
+      "verdict": "fail"
+    },
+    {
+      "command": "node -e \"require('fs').readFileSync('newIDE/app/src/Utils/GDevelopServices/Usage.js','utf8').includes('hasValidSubscriptionPlan')",
+      "exitCode": 1,
+      "durationMs": 190,
+      "verdict": "fail"
+    }
+  ],
+  "retryAttempt": 1,
+  "maxRetries": 10
+}

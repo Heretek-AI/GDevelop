@@ -1,0 +1,18 @@
+{
+  "id": "002e4a41-7bde-4ad9-b515-ad2e297486e7",
+  "runtime": "node",
+  "purpose": "S01-UAT-smoke-verify",
+  "script_chars": 542,
+  "started_at": "2026-05-19T01:03:18.648Z",
+  "finished_at": "2026-05-19T01:03:18.693Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 45,
+  "stdout_bytes": 63,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\002e4a41-7bde-4ad9-b515-ad2e297486e7.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\002e4a41-7bde-4ad9-b515-ad2e297486e7.stderr"
+}

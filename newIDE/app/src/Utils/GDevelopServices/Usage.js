@@ -446,25 +446,55 @@ export const getUserLimits = async (
   getAuthorizationHeader: () => Promise<string>,
   userId: string
 ): Promise<Limits> => {
-  const authorizationHeader = await getAuthorizationHeader();
-  const params: {| userId: string, platform?: string |} = {
-    userId,
-  };
-  if (isNativeMobileApp()) {
-    params.platform = 'mobile';
-  }
-
-  const response = await apiClient.get('/limits', {
-    params,
-    headers: {
-      Authorization: authorizationHeader,
+  // Premium bypass: skip the API call and return a static max-limits object.
+  // All quotas are maxed (limitReached: false, current: 0, max: 999999),
+  // all capability booleans are true, theme customization is FULL, and credits
+  // reflect a premium balance.
+  return {
+    quotas: {},
+    capabilities: {
+      analytics: {
+        sessions: true,
+        players: true,
+        retention: true,
+        sessionsTimeStats: true,
+        platforms: true,
+      },
+      cloudProjects: {
+        maximumCount: 999999,
+        canMaximumCountBeIncreased: true,
+        maximumGuestCollaboratorsPerProject: 999999,
+      },
+      leaderboards: {
+        maximumCountPerGame: 999999,
+        canMaximumCountPerGameBeIncreased: true,
+        themeCustomizationCapabilities: 'FULL',
+        canUseCustomCss: true,
+        canDisableLoginInLeaderboard: true,
+      },
+      multiplayer: {
+        lobbiesCount: 999999,
+        maxPlayersPerLobby: 999999,
+        themeCustomizationCapabilities: 'FULL',
+      },
+      versionHistory: {
+        enabled: true,
+        retentionDays: 999999,
+      },
+      ai: {
+        availablePresets: [
+          { mode: 'chat', name: 'Default', id: 'default' },
+          { mode: 'agent', name: 'Agent', id: 'agent' },
+          { mode: 'orchestrator', name: 'Orchestrator', id: 'orchestrator' },
+        ],
+      },
     },
-  });
-  return ensureObjectHasProperty({
-    data: response.data,
-    propertyName: 'capabilities',
-    endpointName: '/limits of Usage API',
-  });
+    credits: {
+      userBalance: { amount: 999999 },
+      prices: {},
+      purchasableQuantities: {},
+    },
+  };
 };
 
 export const getUserSubscription = async (
@@ -541,18 +571,10 @@ export const isSubscriptionComingFromTeam = (
 export const hasValidSubscriptionPlan = (
   subscription: ?Subscription
 ): boolean => {
-  const hasValidSubscription =
-    !!subscription &&
-    !!subscription.planId &&
-    (!subscription.redemptionCodeValidUntil || // No redemption code
-      subscription.redemptionCodeValidUntil > Date.now()); // Redemption code is still valid
-
-  if (hasValidSubscription) {
-    // The user has a subscription registered in the backend (classic "Registered" user).
-    return true;
-  }
-
-  return false;
+  // Premium bypass: always return true regardless of the subscription argument.
+  // This is the single choke point used by all premium gating callers
+  // (SubscriptionChecker, AskAiEditorContainer, etc.).
+  return true;
 };
 
 type UploadType = 'build' | 'preview';

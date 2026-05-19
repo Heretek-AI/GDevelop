@@ -1,0 +1,18 @@
+{
+  "id": "50a3fcf0-800a-4711-abf7-1beee8b27d40",
+  "runtime": "node",
+  "purpose": "S01-UAT-full-verification",
+  "script_chars": 4409,
+  "started_at": "2026-05-19T01:02:58.391Z",
+  "finished_at": "2026-05-19T01:02:58.440Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 49,
+  "stdout_bytes": 814,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\50a3fcf0-800a-4711-abf7-1beee8b27d40.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\50a3fcf0-800a-4711-abf7-1beee8b27d40.stderr"
+}

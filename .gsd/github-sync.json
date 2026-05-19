@@ -9,6 +9,13 @@
       "branch": "milestone/M001/S01",
       "lastSyncedAt": "2026-05-18T23:45:25.069Z",
       "state": "open"
+    },
+    "M001/S02": {
+      "issueNumber": 0,
+      "prNumber": 0,
+      "branch": "milestone/M001/S02",
+      "lastSyncedAt": "2026-05-19T01:13:09.902Z",
+      "state": "open"
     }
   },
   "tasks": {}

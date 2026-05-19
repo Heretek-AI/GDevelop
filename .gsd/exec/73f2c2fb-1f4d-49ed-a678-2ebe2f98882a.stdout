@@ -1,0 +1,13 @@
+PASS: capability sub-key analytics
+PASS: capability sub-key cloudProjects
+PASS: capability sub-key leaderboards
+PASS: capability sub-key multiplayer
+PASS: capability sub-key versionHistory
+PASS: capability sub-key ai
+PASS: top-level key quotas
+PASS: top-level key capabilities
+PASS: top-level key credits
+PASS: top-level key userBalance
+PASS: top-level key prices
+PASS: top-level key purchasableQuantities
+All shape compatibility checks passed.

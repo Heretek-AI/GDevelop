@@ -1,0 +1,18 @@
+{
+  "id": "73f2c2fb-1f4d-49ed-a678-2ebe2f98882a",
+  "runtime": "node",
+  "purpose": "T02-verify-limits-shape-compatibility",
+  "script_chars": 1797,
+  "started_at": "2026-05-19T00:58:51.766Z",
+  "finished_at": "2026-05-19T00:58:51.820Z",
+  "exit_code": 0,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 54,
+  "stdout_bytes": 445,
+  "stderr_bytes": 0,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\73f2c2fb-1f4d-49ed-a678-2ebe2f98882a.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\73f2c2fb-1f4d-49ed-a678-2ebe2f98882a.stderr"
+}

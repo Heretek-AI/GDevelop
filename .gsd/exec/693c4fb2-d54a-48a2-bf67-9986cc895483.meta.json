@@ -1,0 +1,18 @@
+{
+  "id": "693c4fb2-d54a-48a2-bf67-9986cc895483",
+  "runtime": "bash",
+  "purpose": "Check existing test structure in electron-app",
+  "script_chars": 316,
+  "started_at": "2026-05-19T01:09:59.128Z",
+  "finished_at": "2026-05-19T01:09:59.264Z",
+  "exit_code": 1,
+  "signal": null,
+  "timed_out": false,
+  "duration_ms": 136,
+  "stdout_bytes": 0,
+  "stderr_bytes": 94,
+  "stdout_truncated": false,
+  "stderr_truncated": false,
+  "stdout_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\693c4fb2-d54a-48a2-bf67-9986cc895483.stdout",
+  "stderr_path": "C:\\Users\\Derek\\GDevelop\\.gsd\\worktrees\\M001\\.gsd\\exec\\693c4fb2-d54a-48a2-bf67-9986cc895483.stderr"
+}
