@@ -101,6 +101,31 @@
       "label": "T03: Wire BYOK routing into AskAiEditorContainer",
       "type": "task",
       "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M001:S04",
+      "label": "S04: Config UI",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/slices/S04/S04-PLAN.md"
+    },
+    {
+      "id": "task:M001:S04:T01",
+      "label": "T01: Merge apiKey in byokMain.js byok:saveConfig to prevent key clobbering",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S04:T02",
+      "label": "T02: Create ByokConfigPanel.js React component with provider/endpoint/key/model fields",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "task:M001:S04:T03",
+      "label": "T03: Wire ByokConfigPanel into AiRequestChat/index.js below preset selector",
+      "type": "task",
+      "confidence": "EXTRACTED"
     }
   ],
   "edges": [
@@ -187,7 +212,31 @@
       "to": "task:M001:S03:T03",
       "type": "contains",
       "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M001",
+      "to": "slice:M001:S04",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S04",
+      "to": "task:M001:S04:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S04",
+      "to": "task:M001:S04:T02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M001:S04",
+      "to": "task:M001:S04:T03",
+      "type": "contains",
+      "confidence": "EXTRACTED"
     }
   ],
-  "builtAt": "2026-05-19T15:09:35.874Z"
+  "builtAt": "2026-05-19T18:33:20.306Z"
 }

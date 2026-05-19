@@ -24,10 +24,10 @@
 - [x] **S03: S03** `risk:medium` `depends:[]`
   > After this: BYOK preset appears in dropdown, selecting it routes AI requests through local IPC
 
-- [ ] **S04: S04** `risk:low` `depends:[]`
+- [x] **S04: S04** `risk:low` `depends:[]`
   > After this: Config panel renders with provider/endpoint/key/model fields, settings persist across restart
 
-- [ ] **S05: Integration & Regression** `risk:low` `depends:[S01,S02,S03,S04]`
+- [ ] **S05: S05** `risk:low` `depends:[]`
   > After this: Full end-to-end: premium unlock active, BYOK chat works, non-BYOK presets still functional
 
 ## Boundary Map
