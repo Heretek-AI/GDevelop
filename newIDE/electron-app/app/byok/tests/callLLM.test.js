@@ -3,10 +3,14 @@
 /**
  * Tests for callLLM.js — core OpenAI-compatible LLM caller.
  *
- * Strategy: byokConfig.js requires 'electron' (not available outside Electron
+ * byokConfig.js was migrated from fs-extra to native Node.js `fs` (fs.promises)
+ * so the module loads without any external dependency in any Node environment,
+ * including CI where the electron-app postinstall (which normally installs
+ * app dependencies) is skipped by npm ci --ignore-scripts.
+ *
+ * byokConfig.js still requires 'electron' (not available outside Electron
  * runtime).  We create a minimal mock for the 'electron' module at a temp path
- * and inject it into require.cache before loading callLLM.  fs-extra is
- * installed via npm and resolves normally from electron-app/app/node_modules.
+ * and inject it into require.cache before loading callLLM.
  *
  * All fetch calls are mocked so we exercise validation, HTTP error mapping,
  * streaming SSE parsing, and request tracking without network access.

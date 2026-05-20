@@ -3,14 +3,16 @@
 /**
  * BYOK configuration persistence layer.
  *
- * Reads and writes a JSON config file at app.getPath('userData')/byok-config.json
- * using fs-extra (already a dependency of the electron-app package).
+ * Reads and writes a JSON config file at app.getPath('userData')/byok-config.json.
  *
- * This module requires Electron's `app` module and therefore can only run inside
- * an Electron main process — it cannot be unit-tested with plain Node.
+ * Uses native Node.js `fs` module (no external dependency) so the module can
+ * be loaded in any Node.js environment, including CI.  The Electron `app`
+ * dependency remains for runtime path resolution inside the Electron main
+ * process — unit tests mock it via Module._resolveFilename.
  */
 
-const fs = require('fs-extra');
+const fs = require('fs');
+const fsp = require('fs').promises;
 const { app } = require('electron');
 const path = require('path');
 
@@ -45,7 +47,7 @@ async function readConfig() {
 
   let persisted;
   try {
-    const raw = await fs.readFile(configPath, 'utf8');
+    const raw = await fsp.readFile(configPath, 'utf8');
     persisted = JSON.parse(raw);
   } catch (err) {
     // ENOENT is expected on first launch — return defaults.
@@ -72,8 +74,8 @@ async function writeConfig(config) {
     throw new TypeError('config must be a non-null object');
   }
   const configPath = getConfigPath();
-  await fs.ensureDir(path.dirname(configPath));
-  await fs.writeJson(configPath, config, { spaces: 2 });
+  await fsp.mkdir(path.dirname(configPath), { recursive: true });
+  await fsp.writeFile(configPath, JSON.stringify(config, null, 2), 'utf8');
 }
 
 module.exports = { readConfig, writeConfig, getConfigPath, DEFAULT_CONFIG };
