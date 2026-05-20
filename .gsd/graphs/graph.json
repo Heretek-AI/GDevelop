@@ -1,19 +1,26 @@
 {
   "nodes": [
     {
-      "id": "milestone:M001",
-      "label": "M001: BYOK Fork",
+      "id": "milestone:M002",
+      "label": "M002: CI Build Pipeline",
       "type": "milestone",
-      "description": "Active milestone: M001",
+      "description": "Active milestone: M002",
       "confidence": "EXTRACTED",
       "sourceFile": "STATE.md"
     },
     {
-      "id": "concept:phase:validating-milestone",
-      "label": "Phase: validating-milestone",
+      "id": "concept:phase:planning",
+      "label": "Phase: planning",
       "type": "concept",
       "confidence": "EXTRACTED",
       "sourceFile": "STATE.md"
+    },
+    {
+      "id": "milestone:M001",
+      "label": "M001: BYOK Fork",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/M001-ROADMAP.md"
     },
     {
       "id": "slice:M001:S01",
@@ -157,6 +164,32 @@
       "label": "T04: Manual smoke-test procedure document",
       "type": "task",
       "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M002:S01",
+      "label": "S01: GDevelop.js Emscripten Build",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M002/slices/S01/S01-PLAN.md"
+    },
+    {
+      "id": "task:M002:S01:T01",
+      "label": "T01: Add gdevelop-js-build job to build.yml for Emscripten compilation",
+      "type": "task",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "id": "slice:M002:S02",
+      "label": "S02: App + GDJS Runtime Build",
+      "type": "slice",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M002/slices/S02/S02-PLAN.md"
+    },
+    {
+      "id": "task:M002:S02:T01",
+      "label": "T01: Add app-build CI job for React + GDJS Runtime compilation",
+      "type": "task",
+      "confidence": "EXTRACTED"
     }
   ],
   "edges": [
@@ -297,7 +330,31 @@
       "to": "task:M001:S05:T04",
       "type": "contains",
       "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M002",
+      "to": "slice:M002:S01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S01",
+      "to": "task:M002:S01:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "milestone:M002",
+      "to": "slice:M002:S02",
+      "type": "contains",
+      "confidence": "EXTRACTED"
+    },
+    {
+      "from": "slice:M002:S02",
+      "to": "task:M002:S02:T01",
+      "type": "contains",
+      "confidence": "EXTRACTED"
     }
   ],
-  "builtAt": "2026-05-19T19:09:22.752Z"
+  "builtAt": "2026-05-20T19:29:18.581Z"
 }

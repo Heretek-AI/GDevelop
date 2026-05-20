@@ -4,7 +4,12 @@
 #  1. validate          — lint, syntax checks, unit tests
 #  2. gdevelop-js-build — compile GDevelop.js (C++ → WASM via Emscripten),
 #                          upload libGD.js + libGD.wasm as CI artifacts
-#  3. release           — create a GitHub release (pre-release from master
+#  3. app-build         — compile React frontend (react-app-rewired),
+#                          build GDJS game engine runtime (esbuild),
+#                          assemble Electron preview deps
+#                          (@electron/remote → preview_node_modules),
+#                          upload app-build artifact
+#  4. release           — create a GitHub release (pre-release from master
 #                          push, draft release from v* tag, or from
 #                          workflow_dispatch)
 #
@@ -133,6 +138,92 @@ jobs:
         with:
           name: gdjs-build
           path: newIDE/app/public/
+
+  app-build:
+    name: App + GDJS Runtime Build
+    needs: [validate, gdevelop-js-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache newIDE/app node_modules
+        id: cache-app
+        uses: actions/cache@v4
+        with:
+          path: newIDE/app/node_modules
+          key: newide-app-v1-${{ hashFiles('newIDE/app/package-lock.json') }}
+
+      - name: Cache GDJS node_modules
+        id: cache-gdjs-rt
+        uses: actions/cache@v4
+        with:
+          path: GDJS/node_modules
+          key: gdjs-rt-v1-${{ hashFiles('GDJS/package-lock.json') }}
+
+      - name: Cache electron-app node_modules
+        id: cache-electron
+        uses: actions/cache@v4
+        with:
+          path: newIDE/electron-app/node_modules
+          key: electron-app-v1-${{ hashFiles('newIDE/electron-app/package-lock.json') }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
+      - name: Install app dependencies
+        working-directory: newIDE/app
+        run: npm ci
+
+      - name: Build React app
+        working-directory: newIDE/app
+        run: npm run build
+
+      - name: Install Electron dependencies
+        working-directory: newIDE/electron-app
+        run: npm ci
+
+      - name: Verify outputs
+        run: |
+          echo "=== App Build Verification ==="
+          MISSING=0
+          if [ -f newIDE/app/build/index.html ]; then
+            echo "✅ newIDE/app/build/index.html"
+          else
+            echo "❌ newIDE/app/build/index.html MISSING"
+            MISSING=1
+          fi
+          if [ -d newIDE/app/resources/GDJS/Runtime ]; then
+            echo "✅ newIDE/app/resources/GDJS/Runtime/"
+          else
+            echo "❌ newIDE/app/resources/GDJS/Runtime/ MISSING"
+            MISSING=1
+          fi
+          if [ -d newIDE/app/resources/preview_node_modules/@electron/remote ]; then
+            echo "✅ newIDE/app/resources/preview_node_modules/@electron/remote"
+          else
+            echo "❌ newIDE/app/resources/preview_node_modules/@electron/remote MISSING"
+            MISSING=1
+          fi
+          if [ "$MISSING" -eq 1 ]; then
+            echo "❌ Verification FAILED"
+            exit 1
+          fi
+          echo "✅ All outputs verified"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: |
+            newIDE/app/build/
+            newIDE/app/resources/GDJS/
+            newIDE/app/resources/preview_node_modules/
 
   release:
     name: ${{ github.ref_type == 'tag' && 'Create release' || 'Create pre-release' }}
