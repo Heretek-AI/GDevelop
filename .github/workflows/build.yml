@@ -1,19 +1,17 @@
 # Build workflow for BYOK fork of GDevelop
 #
-# Three modes:
-#  1. Push to master   → runs validation + auto-creates a **pre-release**
-#     (tag: v<version>-pre.<timestamp>.<sha>, prerelease: true, not draft)
+# Multi-job pipeline:
+#  1. validate          — lint, syntax checks, unit tests
+#  2. gdevelop-js-build — compile GDevelop.js (C++ → WASM via Emscripten),
+#                          upload libGD.js + libGD.wasm as CI artifacts
+#  3. release           — create a GitHub release (pre-release from master
+#                          push, draft release from v* tag, or from
+#                          workflow_dispatch)
 #
-#  2. Push a v* tag    → runs validation + creates a **draft release**
-#     for manual review and publishing.
-#
-#  3. workflow_dispatch → creates a release for the specified tag
-#     (requires the 'tag' input).
-#
-# Full electron packaging (electron-builder) requires GDevelop.js built
-# from C++ via Emscripten — not practical in GitHub Actions.  Package
-# locally with:
-#   cd newIDE/electron-app && npm run build
+# Release modes:
+#  - Push to master     → validate → gdevelop-js-build → auto pre-release
+#  - Push a v* tag      → validate → gdevelop-js-build → draft release
+#  - workflow_dispatch   → validate → gdevelop-js-build → release for tag
 
 name: Build
 
@@ -80,9 +78,65 @@ jobs:
             tests/requestStore.test.js \
             tests/callLLM.test.js
 
+  gdevelop-js-build:
+    name: GDevelop.js Emscripten build
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache GDevelop.js node_modules
+        id: cache-gdjs
+        uses: actions/cache@v4
+        with:
+          path: GDevelop.js/node_modules
+          key: gdjs-v1-${{ hashFiles('GDevelop.js/package-lock.json') }}
+
+      - name: Install Emscripten SDK
+        uses: mymindstorm/setup-emsdk@v1
+
+      - name: Install GDevelop.js dependencies
+        working-directory: GDevelop.js
+        run: npm ci --ignore-scripts
+
+      - name: Build GDevelop.js (Emscripten → WASM)
+        working-directory: GDevelop.js
+        run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          echo "=== GDevelop.js build artifact verification ==="
+          test -f newIDE/app/public/libGD.js \
+            || { echo "❌ libGD.js not found in newIDE/app/public/"; exit 1; }
+          test -f newIDE/app/public/libGD.wasm \
+            || { echo "❌ libGD.wasm not found in newIDE/app/public/"; exit 1; }
+
+          JS_SIZE=$(stat -c%s newIDE/app/public/libGD.js 2>/dev/null || echo 0)
+          WASM_SIZE=$(stat -c%s newIDE/app/public/libGD.wasm 2>/dev/null || echo 0)
+          MAX_SIZE=2097152
+
+          echo "libGD.js:   ${JS_SIZE} bytes"
+          echo "libGD.wasm: ${WASM_SIZE} bytes"
+
+          if [ "${JS_SIZE}" -gt "${MAX_SIZE}" ]; then
+            echo "❌ libGD.js exceeds 2 MiB limit (${JS_SIZE} > ${MAX_SIZE})"
+            exit 1
+          fi
+          echo "✅ libGD.js size check passed (under 2 MiB)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
   release:
     name: ${{ github.ref_type == 'tag' && 'Create release' || 'Create pre-release' }}
-    needs: validate
+    needs: [validate, gdevelop-js-build]
     runs-on: ubuntu-latest
     permissions:
       contents: write
