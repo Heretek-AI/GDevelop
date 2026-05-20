@@ -9,7 +9,8 @@
 #                          assemble Electron preview deps
 #                          (@electron/remote → preview_node_modules),
 #                          upload app-build artifact
-#  4. release           — create a GitHub release (pre-release from master
+#  4. platform-build    — Electron platform installer builds (5-ary matrix)
+#  5. release           — create a GitHub release (pre-release from master
 #                          push, draft release from v* tag, or from
 #                          workflow_dispatch)
 #
@@ -224,6 +225,73 @@ jobs:
             newIDE/app/build/
             newIDE/app/resources/GDJS/
             newIDE/app/resources/preview_node_modules/
+
+  platform-build:
+    name: Build (${{ matrix.name }})
+    needs: [app-build]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+            builder-args: --linux --x64
+          - name: linux-arm64
+            os: ubuntu-latest
+            builder-args: --linux --arm64
+          - name: mac-universal
+            os: macos-latest
+            builder-args: --mac --universal
+          - name: win-x64
+            os: windows-latest
+            builder-args: --win --x64
+          - name: win-arm64
+            os: windows-11-arm64
+            builder-args: --win --arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache electron-app node_modules
+        uses: actions/cache@v4
+        with:
+          path: newIDE/electron-app/node_modules
+          key: electron-app-v1-${{ hashFiles('newIDE/electron-app/package-lock.json') }}
+
+      - name: Install libfuse2 (Linux only)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get install -y libfuse2
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-build
+
+      - name: Install electron-app dependencies
+        working-directory: newIDE/electron-app
+        run: npm ci
+
+      - name: Copy React bundle to app/www
+        working-directory: newIDE/electron-app
+        run: node scripts/app-build.js --skip-app-build
+
+      - name: Build platform installer
+        working-directory: newIDE/electron-app
+        run: npx electron-builder --config=electron-builder-config.js ${{ matrix.builder-args }} --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gdevelop-${{ matrix.name }}
+          path: newIDE/electron-app/dist/
 
   release:
     name: ${{ github.ref_type == 'tag' && 'Create release' || 'Create pre-release' }}
