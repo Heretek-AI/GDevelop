@@ -37,6 +37,13 @@
       "branch": "milestone/M001/S05",
       "lastSyncedAt": "2026-05-20T01:14:59.554Z",
       "state": "open"
+    },
+    "M002/S01": {
+      "issueNumber": 0,
+      "prNumber": 0,
+      "branch": "milestone/M002/S01",
+      "lastSyncedAt": "2026-05-20T16:21:44.744Z",
+      "state": "open"
     }
   },
   "tasks": {}
