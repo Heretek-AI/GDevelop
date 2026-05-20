@@ -48,7 +48,9 @@ const ByokConfigPanel = (): React.Node => {
 
     // $FlowFixMe — window.byokAi is exposed by the Electron preload script
     if (!window.byokAi) {
-      console.info('[ByokConfigPanel] window.byokAi not available — running outside Electron?');
+      console.info(
+        '[ByokConfigPanel] window.byokAi not available — running outside Electron?'
+      );
       return;
     }
 
@@ -73,7 +75,10 @@ const ByokConfigPanel = (): React.Node => {
       .catch((err: any) => {
         if (cancelled) return;
         console.info('[ByokConfigPanel] Config load failed', err);
-        setFeedback({ type: 'error', message: 'Failed to load configuration.' });
+        setFeedback({
+          type: 'error',
+          message: 'Failed to load configuration.',
+        });
       });
 
     return () => {
@@ -81,34 +86,40 @@ const ByokConfigPanel = (): React.Node => {
     };
   }, []);
 
-  const handleSave = React.useCallback(() => {
-    // $FlowFixMe — window.byokAi is exposed by the Electron preload script
-    if (!window.byokAi) {
-      setFeedback({ type: 'error', message: 'BYOK bridge not available.' });
-      return;
-    }
+  const handleSave = React.useCallback(
+    () => {
+      // $FlowFixMe — window.byokAi is exposed by the Electron preload script
+      if (!window.byokAi) {
+        setFeedback({ type: 'error', message: 'BYOK bridge not available.' });
+        return;
+      }
 
-    const configToSave = {
-      provider: config.provider,
-      endpoint: config.endpoint,
-      apiKey: config.apiKey,
-      model: config.model,
-    };
+      const configToSave = {
+        provider: config.provider,
+        endpoint: config.endpoint,
+        apiKey: config.apiKey,
+        model: config.model,
+      };
 
-    // $FlowFixMe — window.byokAi is exposed by the Electron preload script
-    window.byokAi
-      .saveConfig(configToSave)
-      .then(() => {
-        console.info('[ByokConfigPanel] Config saved successfully');
-        setFeedback({ type: 'success', message: 'Configuration saved.' });
-        // Clear the key field after save (it will show as masked on next load)
-        setConfig(prev => ({ ...prev, apiKey: '', hasApiKey: true }));
-      })
-      .catch((err: any) => {
-        console.info('[ByokConfigPanel] Config save failed', err);
-        setFeedback({ type: 'error', message: 'Failed to save configuration.' });
-      });
-  }, [config]);
+      // $FlowFixMe — window.byokAi is exposed by the Electron preload script
+      window.byokAi
+        .saveConfig(configToSave)
+        .then(() => {
+          console.info('[ByokConfigPanel] Config saved successfully');
+          setFeedback({ type: 'success', message: 'Configuration saved.' });
+          // Clear the key field after save (it will show as masked on next load)
+          setConfig(prev => ({ ...prev, apiKey: '', hasApiKey: true }));
+        })
+        .catch((err: any) => {
+          console.info('[ByokConfigPanel] Config save failed', err);
+          setFeedback({
+            type: 'error',
+            message: 'Failed to save configuration.',
+          });
+        });
+    },
+    [config]
+  );
 
   const hasByokBridge =
     // $FlowFixMe — window.byokAi is exposed by the Electron preload script
@@ -178,11 +189,7 @@ const ByokConfigPanel = (): React.Node => {
         translatableHintText={undefined}
       />
       <Line noMargin alignItems="center">
-        <RaisedButton
-          label="Save"
-          primary
-          onClick={handleSave}
-        />
+        <RaisedButton label="Save" primary onClick={handleSave} />
         {feedback.type && (
           <>
             <Spacer />

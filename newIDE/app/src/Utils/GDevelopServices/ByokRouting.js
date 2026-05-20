@@ -27,9 +27,16 @@ const generateUUID = (): string => {
   }
   // Fallback: timestamp + random components, formatted as a v4-style UUID.
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 10);
-  const suffix = Math.random().toString(36).substring(2, 14);
-  return `${timestamp}-${random}-4${suffix.substring(1, 4)}-${suffix.substring(4, 8)}-${suffix.substring(8, 12)}`;
+  const random = Math.random()
+    .toString(36)
+    .substring(2, 10);
+  const suffix = Math.random()
+    .toString(36)
+    .substring(2, 14);
+  return `${timestamp}-${random}-4${suffix.substring(1, 4)}-${suffix.substring(
+    4,
+    8
+  )}-${suffix.substring(8, 12)}`;
 };
 
 /**
@@ -90,9 +97,7 @@ const toLLMConversation = (
 
     if (msg.role === 'user') {
       const userMsg: AiRequestUserMessage = (msg: any);
-      const textContent = userMsg.content.find(
-        c => c.type === 'user_request'
-      );
+      const textContent = userMsg.content.find(c => c.type === 'user_request');
       if (textContent && textContent.text) {
         conversation.push({ role: 'user', content: textContent.text });
       }
@@ -136,7 +141,10 @@ export const byokCreateAiRequest = async ({
   userRequest: string,
   mode: 'chat' | 'agent' | 'orchestrator',
 |}): Promise<$Shape<AiRequest>> => {
-  console.info('[ByokRouting] Creating BYOK AI request', { mode, userRequestLength: userRequest.length });
+  console.info('[ByokRouting] Creating BYOK AI request', {
+    mode,
+    userRequestLength: userRequest.length,
+  });
 
   const requestId = generateUUID();
   const now = new Date().toISOString();
@@ -150,7 +158,10 @@ export const byokCreateAiRequest = async ({
 
     const assistantMessage = buildAssistantMessage(result.text);
 
-    console.info('[ByokRouting] BYOK request completed successfully', { requestId, mode });
+    console.info('[ByokRouting] BYOK request completed successfully', {
+      requestId,
+      mode,
+    });
 
     return {
       id: requestId,
@@ -177,7 +188,11 @@ export const byokCreateAiRequest = async ({
       err && typeof err === 'object' && err.message
         ? err.message
         : 'Unknown BYOK error';
-    console.info('[ByokRouting] BYOK request failed', { requestId, mode, error: errorMessage });
+    console.info('[ByokRouting] BYOK request failed', {
+      requestId,
+      mode,
+      error: errorMessage,
+    });
 
     return {
       id: requestId,
@@ -238,11 +253,7 @@ export const byokAddMessageToAiRequest = async (
     const result = await window.byokAi.callLLM({ messages: conversation });
     const assistantMsg = buildAssistantMessage(result.text);
 
-    const updatedOutput = [
-      ...existingMessages,
-      newUserMsg,
-      assistantMsg,
-    ];
+    const updatedOutput = [...existingMessages, newUserMsg, assistantMsg];
 
     console.info('[ByokRouting] BYOK message added successfully', {
       requestId: aiRequest.id,
