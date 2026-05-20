@@ -1,16 +1,26 @@
-# Release workflow for BYOK fork of GDevelop
+# Build workflow for BYOK fork of GDevelop
 #
-# Triggered by pushing a tag (e.g. v1.0.0).  Runs CI validation, then
-# creates a GitHub Release with auto-generated release notes.
+# Three modes:
+#  1. Push to master   → runs validation + auto-creates a **pre-release**
+#     (tag: v<version>-pre.<timestamp>.<sha>, prerelease: true, not draft)
 #
-# Full packaging (electron-builder) requires GDevelop.js built from C++
-# via Emscripten — not practical in GitHub Actions.  Package locally with:
+#  2. Push a v* tag    → runs validation + creates a **draft release**
+#     for manual review and publishing.
+#
+#  3. workflow_dispatch → creates a release for the specified tag
+#     (requires the 'tag' input).
+#
+# Full electron packaging (electron-builder) requires GDevelop.js built
+# from C++ via Emscripten — not practical in GitHub Actions.  Package
+# locally with:
 #   cd newIDE/electron-app && npm run build
 
-name: Release
+name: Build
 
 on:
   push:
+    branches:
+      - master
     tags:
       - "v*"
   workflow_dispatch:
@@ -18,6 +28,13 @@ on:
       tag:
         description: "Tag to release (e.g. v1.0.0)"
         required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "18"
 
 jobs:
   validate:
@@ -29,14 +46,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Cache newIDE node_modules
         id: cache
         uses: actions/cache@v4
         with:
           path: newIDE/app/node_modules
-          key: newide-release-v1-${{ hashFiles('newIDE/app/package-lock.json') }}
+          key: newide-build-v1-${{ hashFiles('newIDE/app/package-lock.json') }}
 
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -64,26 +81,38 @@ jobs:
             tests/callLLM.test.js
 
   release:
-    name: Create release
+    name: ${{ github.ref_type == 'tag' && 'Create release' || 'Create pre-release' }}
     needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      release_url: ${{ steps.create.outputs.url }}
     steps:
       - uses: actions/checkout@v4
         with:
-          # Fetch all history + tags so we can build a proper changelog
-          # from the previous tag to HEAD.
+          # Full history + tags for changelog generation across the
+          # previous-to-current-tag range.
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Determine release tag
-        id: tag
+      - name: Determine release tag and type
+        id: info
         run: |
+          IS_PRERELEASE="false"
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             TAG="${{ inputs.tag }}"
+          elif [[ "${{ github.ref_type }}" == "tag" ]]; then
+            TAG="${GITHUB_REF_NAME}"
           else
-            TAG="${GITHUB_REF#refs/tags/}"
+            # Push to master — auto-generate a unique pre-release tag.
+            APP_VERSION=$(node -e \
+              "console.log(require('./newIDE/electron-app/app/package.json').version)")
+            TS=$(date -u +%Y%m%d%H%M%S)
+            SHA="${GITHUB_SHA:0:7}"
+            TAG="v${APP_VERSION}-pre.${TS}.${SHA}"
+            IS_PRERELEASE="true"
           fi
 
           if [ -z "$TAG" ]; then
@@ -92,23 +121,28 @@ jobs:
           fi
 
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
-          echo "Release tag: ${TAG}"
+          echo "is_prerelease=${IS_PRERELEASE}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: ${TAG}  (prerelease: ${IS_PRERELEASE})"
 
       - name: Generate release notes
         id: notes
         run: |
-          TAG="${{ steps.tag.outputs.tag }}"
+          TAG="${{ steps.info.outputs.tag }}"
+          IS_PRERELEASE="${{ steps.info.outputs.is_prerelease }}"
           PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
+
           if [ -n "$PREV_TAG" ]; then
-            RANGE="${PREV_TAG}..${TAG}"
+            RANGE="${PREV_TAG}..HEAD"
           else
-            RANGE="${TAG}"
+            RANGE="HEAD"
           fi
+
           echo "Changelog range: ${RANGE}"
           CHANGELOG=$(git log --oneline --no-merges "$RANGE" 2>/dev/null || \
                        git log --oneline --no-merges --max-count=30)
+
           {
-            echo "## Changes in ${TAG}"
+            echo "## ${IS_PRERELEASE:+Pre-release }Changes"
             echo
             echo '```'
             echo "$CHANGELOG"
@@ -117,9 +151,14 @@ jobs:
           echo "notes_path=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
+        id: create
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ steps.info.outputs.tag }}
+          name: ${{ steps.info.outputs.tag }}
           body_path: ${{ steps.notes.outputs.notes_path }}
-          draft: true
+          prerelease: ${{ steps.info.outputs.is_prerelease == 'true' }}
+          # Pre-releases are published immediately (not draft) so consumers
+          # can download them.  Tagged releases are draft-only for review.
+          draft: ${{ steps.info.outputs.is_prerelease != 'true' }}
           generate_release_notes: false
