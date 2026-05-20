@@ -71,22 +71,44 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Fetch all history + tags so we can build a proper changelog
+          # from the previous tag to HEAD.
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Determine release tag
+        id: tag
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF#refs/tags/}"
+          fi
+
+          if [ -z "$TAG" ]; then
+            echo "::error::No tag specified. For workflow_dispatch, provide the 'tag' input."
+            exit 1
+          fi
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: ${TAG}"
 
       - name: Generate release notes
         id: notes
         run: |
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "Tag: $TAG"
-          PREV_TAG=$(git tag --sort=-creatordate | sed -n 2p)
+          TAG="${{ steps.tag.outputs.tag }}"
+          PREV_TAG=$(git tag --sort=-creatordate | sed -n '2p')
           if [ -n "$PREV_TAG" ]; then
-            RANGE="$PREV_TAG..HEAD"
+            RANGE="${PREV_TAG}..${TAG}"
           else
-            RANGE="HEAD"
+            RANGE="${TAG}"
           fi
-          echo "$RANGE"
-          CHANGELOG=$(git log --oneline --no-merges "$RANGE" 2>/dev/null || git log --oneline --no-merges HEAD~10..HEAD)
+          echo "Changelog range: ${RANGE}"
+          CHANGELOG=$(git log --oneline --no-merges "$RANGE" 2>/dev/null || \
+                       git log --oneline --no-merges --max-count=30)
           {
-            echo "## Changes"
+            echo "## Changes in ${TAG}"
             echo
             echo '```'
             echo "$CHANGELOG"
@@ -97,6 +119,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           body_path: ${{ steps.notes.outputs.notes_path }}
           draft: true
           generate_release_notes: false
