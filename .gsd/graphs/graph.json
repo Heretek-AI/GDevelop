@@ -3,17 +3,27 @@
     {
       "id": "milestone:M002",
       "label": "M002: CI Build Pipeline",
+      "id": "milestone:M002",
+      "label": "M002: CI Build Pipeline",
       "type": "milestone",
+      "description": "Active milestone: M002",
       "description": "Active milestone: M002",
       "confidence": "EXTRACTED",
       "sourceFile": "STATE.md"
     },
     {
-      "id": "concept:phase:validating-milestone",
-      "label": "Phase: validating-milestone",
+      "id": "concept:phase:planning",
+      "label": "Phase: planning",
       "type": "concept",
       "confidence": "EXTRACTED",
       "sourceFile": "STATE.md"
+    },
+    {
+      "id": "milestone:M001",
+      "label": "M001: BYOK Fork",
+      "type": "milestone",
+      "confidence": "EXTRACTED",
+      "sourceFile": "milestones/M001/M001-ROADMAP.md"
     },
     {
       "id": "milestone:M001",

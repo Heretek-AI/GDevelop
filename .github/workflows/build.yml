@@ -293,6 +293,215 @@ jobs:
           name: gdevelop-${{ matrix.name }}
           path: newIDE/electron-app/dist/
 
+  gdevelop-js-build:
+    name: GDevelop.js Emscripten build
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache GDevelop.js node_modules
+        id: cache-gdjs
+        uses: actions/cache@v4
+        with:
+          path: GDevelop.js/node_modules
+          key: gdjs-v1-${{ hashFiles('GDevelop.js/package-lock.json') }}
+
+      - name: Install Emscripten SDK
+        uses: mymindstorm/setup-emsdk@v1
+
+      - name: Install GDevelop.js dependencies
+        working-directory: GDevelop.js
+        run: npm ci --ignore-scripts
+
+      - name: Build GDevelop.js (Emscripten → WASM)
+        working-directory: GDevelop.js
+        run: npm run build
+
+      - name: Verify build artifacts
+        run: |
+          echo "=== GDevelop.js build artifact verification ==="
+          test -f newIDE/app/public/libGD.js \
+            || { echo "❌ libGD.js not found in newIDE/app/public/"; exit 1; }
+          test -f newIDE/app/public/libGD.wasm \
+            || { echo "❌ libGD.wasm not found in newIDE/app/public/"; exit 1; }
+
+          JS_SIZE=$(stat -c%s newIDE/app/public/libGD.js 2>/dev/null || echo 0)
+          WASM_SIZE=$(stat -c%s newIDE/app/public/libGD.wasm 2>/dev/null || echo 0)
+          MAX_SIZE=2097152
+
+          echo "libGD.js:   ${JS_SIZE} bytes"
+          echo "libGD.wasm: ${WASM_SIZE} bytes"
+
+          if [ "${JS_SIZE}" -gt "${MAX_SIZE}" ]; then
+            echo "❌ libGD.js exceeds 2 MiB limit (${JS_SIZE} > ${MAX_SIZE})"
+            exit 1
+          fi
+          echo "✅ libGD.js size check passed (under 2 MiB)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
+  app-build:
+    name: App + GDJS Runtime Build
+    needs: [validate, gdevelop-js-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache newIDE/app node_modules
+        id: cache-app
+        uses: actions/cache@v4
+        with:
+          path: newIDE/app/node_modules
+          key: newide-app-v1-${{ hashFiles('newIDE/app/package-lock.json') }}
+
+      - name: Cache GDJS node_modules
+        id: cache-gdjs-rt
+        uses: actions/cache@v4
+        with:
+          path: GDJS/node_modules
+          key: gdjs-rt-v1-${{ hashFiles('GDJS/package-lock.json') }}
+
+      - name: Cache electron-app node_modules
+        id: cache-electron
+        uses: actions/cache@v4
+        with:
+          path: newIDE/electron-app/node_modules
+          key: electron-app-v1-${{ hashFiles('newIDE/electron-app/package-lock.json') }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
+      - name: Install app dependencies
+        working-directory: newIDE/app
+        run: npm ci
+
+      - name: Build React app
+        working-directory: newIDE/app
+        run: npm run build
+
+      - name: Install Electron dependencies
+        working-directory: newIDE/electron-app
+        run: npm ci
+
+      - name: Verify outputs
+        run: |
+          echo "=== App Build Verification ==="
+          MISSING=0
+          if [ -f newIDE/app/build/index.html ]; then
+            echo "✅ newIDE/app/build/index.html"
+          else
+            echo "❌ newIDE/app/build/index.html MISSING"
+            MISSING=1
+          fi
+          if [ -d newIDE/app/resources/GDJS/Runtime ]; then
+            echo "✅ newIDE/app/resources/GDJS/Runtime/"
+          else
+            echo "❌ newIDE/app/resources/GDJS/Runtime/ MISSING"
+            MISSING=1
+          fi
+          if [ -d newIDE/app/resources/preview_node_modules/@electron/remote ]; then
+            echo "✅ newIDE/app/resources/preview_node_modules/@electron/remote"
+          else
+            echo "❌ newIDE/app/resources/preview_node_modules/@electron/remote MISSING"
+            MISSING=1
+          fi
+          if [ "$MISSING" -eq 1 ]; then
+            echo "❌ Verification FAILED"
+            exit 1
+          fi
+          echo "✅ All outputs verified"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-build
+          path: |
+            newIDE/app/build/
+            newIDE/app/resources/GDJS/
+            newIDE/app/resources/preview_node_modules/
+
+  platform-build:
+    name: Build (${{ matrix.name }})
+    needs: [app-build]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        include:
+          - name: linux-x64
+            os: ubuntu-latest
+            builder-args: --linux --x64
+          - name: linux-arm64
+            os: ubuntu-latest
+            builder-args: --linux --arm64
+          - name: mac-universal
+            os: macos-latest
+            builder-args: --mac --universal
+          - name: win-x64
+            os: windows-latest
+            builder-args: --win --x64
+          - name: win-arm64
+            os: windows-11-arm64
+            builder-args: --win --arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache electron-app node_modules
+        uses: actions/cache@v4
+        with:
+          path: newIDE/electron-app/node_modules
+          key: electron-app-v1-${{ hashFiles('newIDE/electron-app/package-lock.json') }}
+
+      - name: Install libfuse2 (Linux only)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: sudo apt-get install -y libfuse2
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: gdjs-build
+          path: newIDE/app/public/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-build
+
+      - name: Install electron-app dependencies
+        working-directory: newIDE/electron-app
+        run: npm ci
+
+      - name: Copy React bundle to app/www
+        working-directory: newIDE/electron-app
+        run: node scripts/app-build.js --skip-app-build
+
+      - name: Build platform installer
+        working-directory: newIDE/electron-app
+        run: npx electron-builder --config=electron-builder-config.js ${{ matrix.builder-args }} --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gdevelop-${{ matrix.name }}
+          path: newIDE/electron-app/dist/
+
   release:
     name: ${{ github.ref_type == 'tag' && 'Create release' || 'Create pre-release' }}
     needs: [validate, gdevelop-js-build, app-build, platform-build]
