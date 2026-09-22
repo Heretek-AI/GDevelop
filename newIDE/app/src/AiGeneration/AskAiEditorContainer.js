@@ -812,17 +812,17 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             console.info(
               'Skipping send for AI request: some function call results are not finished yet.'
             );
-            return;
+            return false;
           }
           if (hasFunctionsCallsToProcess) {
             console.info(
               'Skipping send for AI request: there are still function calls to process.'
             );
-            return;
+            return false;
           }
 
           // If nothing to send, stop there.
-          if (functionCallOutputs.length === 0 && !userMessage) return;
+          if (functionCallOutputs.length === 0 && !userMessage) return false;
 
           // Paying with credits is only when a user message is sent (and quota is exhausted).
           let payWithCredits = false;
@@ -976,6 +976,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
               onOpenExternalLayout(externalLayoutName);
             });
           }
+          return true;
         },
         [
           profile,
@@ -1041,7 +1042,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
             createdProject?: ?gdProject,
           |}
         ) => {
-          await onSendMessage({
+          return onSendMessage({
             aiRequestId,
             userMessage: '',
             createdProject: options.createdProject,
@@ -1084,6 +1085,7 @@ export const AskAiEditor: React.ComponentType<Props> = React.memo<Props>(
         editorCallbacks,
         aiRequestsToProcess,
         onSendEditorFunctionCallResults,
+        isStudioEnabled: true,
         getEditorFunctionCallResults,
         addEditorFunctionCallResults,
         onSceneEventsModifiedOutsideEditor,
